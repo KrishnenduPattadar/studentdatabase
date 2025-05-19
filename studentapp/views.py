@@ -10,11 +10,16 @@ import openpyxl # type: ignore
 from django.core.paginator import Paginator
 from django.db.models import Q
 
+
+
 def signup_view(request):
-    form = SignUpForm(request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect('login')
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()  # Save the user to the database
+            return redirect('login')  # Redirect to the login page after successful registration
+    else:
+        form = SignUpForm()
     return render(request, 'studentapp/signup.html', {'form': form})
 
 def login_view(request):
@@ -38,6 +43,7 @@ def student_list(request):
     students = Student.objects.all()
     print(students)  # Debug: Print the queryset to verify data
 
+
     # Search functionality
     search_query = request.GET.get('search', '')
     if search_query:
@@ -58,7 +64,7 @@ def student_list(request):
         students = students.filter(grade=grade_filter)
 
     # Pagination
-    paginator = Paginator(students, 3)  # Show 10 students per page
+    paginator = Paginator(students, 5)  # Show 5 students per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -136,6 +142,7 @@ def export_excel(request):
             student.name,
             student.email,
             student.date_of_birth,
+            student.date_of_birth.strftime('%Y-%m-%d'),
             student.gender,
             student.grade,
             student.address,
@@ -150,3 +157,7 @@ def export_excel(request):
     # Save the workbook to the response
     wb.save(response)
     return response
+
+
+
+
